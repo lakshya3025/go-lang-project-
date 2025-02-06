@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Quiz - Quiz App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <div class="quiz-container glass-effect" id="quizContainer">
+            <div class="quiz-header">
+                <h2>{{.Title}}</h2>
+                <div class="quiz-info">
+                    <span class="question-number">Question <span id="currentQuestion">1</span> of {{len .Questions}}</span>
+                    <span class="timer" id="timer">40s</span>
+                    <span class="score">Score: <span id="score">0</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <h3 id="questionText"></h3>
+                <div class="options-container" id="options">
+                    <!-- Options will be inserted here -->
+                </div>
+            </div>
+
+            <div class="quiz-footer">
+                <button id="nextBtn" class="btn-primary" style="display: none;">Next Question</button>
+                <button id="submitBtn" class="btn-primary" style="display: none;">Submit Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quiz = {
+            questions: {{.Questions}},
+            currentQuestion: 0,
+            score: 0,
+            answers: []
+        };
+
+        let timer = 40;
+        let timerInterval;
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timer = 40;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timer--;
+                updateTimerDisplay();
+                
+                if (timer <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+                
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = timer + 's';
+        }
+
+        function handleTimeUp() {
+            // Disable all option buttons
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Record empty answer and move to next question
+            quiz.answers[quiz.currentQuestion] = '';
+            
+            if (quiz.currentQuestion < quiz.questions.length - 1) {
+                document.getElementById('nextBtn').style.display = 'block';
+            } else {
+                document.getElementById('submitBtn').style.display = 'block';
+            }
+        }
+
+        function displayQuestion() {
+            const question = quiz.questions[quiz.currentQuestion];
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('currentQuestion').textContent = quiz.currentQuestion + 1;
+            document.getElementById('progress').style.width = 
+                `${((quiz.currentQuestion) / quiz.questions.length) * 100}%`;
+
+            // Reset timer warning
+            document.getElementById('timer').classList.remove('warning');
+
+            const options = question.options || [];
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => selectOption(button, option);
+                optionsContainer.appendChild(button);
+            });
+
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'none';
+
+            startTimer();
+        }
+
+        function selectOption(button, answer) {
+            clearInterval(timerInterval);
+            
+            // Remove active class and disable all buttons
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.disabled = true;
+            });
+
+            // Add active class to selected button
+            button.classList.add('active');
+            quiz.answers[quiz.currentQuestion] = answer;
+
+            // Show next/submit button
+            if (quiz.currentQuestion === quiz.questions.length - 1) {
+                document.getElementById('submitBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextBtn').style.display = 'block';
+            }
+        }
+
+        function handleNextQuestion() {
+            quiz.currentQuestion++;
+            if (quiz.currentQuestion < quiz.questions.length) {
+                displayQuestion();
+            }
+        }
+
+        document.getElementById('nextBtn').onclick = handleNextQuestion;
+        document.getElementById('submitBtn').onclick = submitQuiz;
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            fetch('/api/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    quizId: {{.ID}},
+                    answers: quiz.answers
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                showResults(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to submit quiz. Please try again.');
+            });
+        }
+
+        function showResults(result) {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = `
+                <div class="results-card glass-effect">
+                    <h2>Quiz Results</h2>
+                    <div class="score-display">
+                        <div class="score">${result.score.toFixed(1)}%</div>
+                        <p>You got ${result.correctAnswers} out of ${result.totalQuestions} questions correct</p>
+                        <p>Your Rank: #${result.rank}</p>
+                    </div>
+                    
+                    <div class="answers-review">
+                        ${result.questions.map((q, index) => `
+                            <div class="answer-item ${q.isCorrect ? 'correct' : 'incorrect'} glass-effect">
+                                <h3>Question ${index + 1}</h3>
+                                <p class="question-text">${q.text}</p>
+                                <div class="answer-details">
+                                    <p>Your answer: <span class="${q.isCorrect ? 'correct-text' : 'incorrect-text'}">${q.userAnswer || 'No answer'}</span></p>
+                                    ${!q.isCorrect ? `<p>Correct answer: <span class="correct-text">${q.correctAnswer}</span></p>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="result-actions">
+                        <a href="/" class="btn-primary">Back to Home</a>
+                        <a href="/leaderboard" class="btn-secondary">View Leaderboard</a>
+                        <a href="/quiz/{{.ID}}" class="btn-secondary">Try Again</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Start the quiz
+        displayQuestion();
+    </script>
+</body>
+</html> 

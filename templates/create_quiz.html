@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz - Quiz App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <nav class="navbar glass-effect">
+            <h1>Quiz App</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/leaderboard" class="nav-link">Leaderboard</a>
+                <form action="/logout" method="POST" class="logout-form">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="quiz-creator glass-effect">
+            <h2>Create New Quiz</h2>
+            <form class="quiz-form" id="quizForm">
+                <div class="form-group">
+                    <label for="title">Quiz Title</label>
+                    <input type="text" id="title" name="title" required placeholder="Enter quiz title">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select a category</option>
+                        {{range .Categories}}
+                        <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Difficulty</label>
+                    <select id="difficulty" name="difficulty" required>
+                        <option value="">Select difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="questionCount">Number of Questions</label>
+                    <select id="questionCount" name="questionCount" required>
+                        <option value="5">5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="15">15 Questions</option>
+                        <option value="20">20 Questions</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Create Quiz</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="loading" style="display: none;">Creating quiz...</div>
+
+    <script>
+        document.getElementById('quizForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const loading = document.querySelector('.loading');
+            
+            const data = {
+                title: form.title.value,
+                category: parseInt(form.category.value),
+                difficulty: form.difficulty.value,
+                questionCount: parseInt(form.questionCount.value)
+            };
+
+            try {
+                loading.style.display = 'flex';
+                
+                const response = await fetch('/admin/create-quiz', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create quiz');
+                }
+
+                const result = await response.json();
+                window.location.href = `/quiz/${result.quizId}`;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to create quiz. Please try again.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

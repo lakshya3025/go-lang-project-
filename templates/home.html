@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Quiz App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <nav class="navbar glass-effect">
+            <h1>Quiz App</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link active">Home</a>
+                <a href="/leaderboard" class="nav-link">Leaderboard</a>
+                <form action="/logout" method="POST" class="logout-form">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="dashboard">
+            <div class="welcome-section glass-effect">
+                <div class="welcome-header">
+                    <h1>Welcome, {{.Username}}! 👋</h1>
+                    <p>Ready to challenge yourself?</p>
+                </div>
+
+                <div class="game-actions">
+                    <a href="/admin/create-quiz" class="game-card glass-effect">
+                        <div class="game-icon">🎯</div>
+                        <div class="game-content">
+                            <h3>New Quiz</h3>
+                            <p>Create a new quiz challenge</p>
+                        </div>
+                    </a>
+                    <a href="/past-quizzes" class="game-card glass-effect">
+                        <div class="game-icon">📚</div>
+                        <div class="game-content">
+                            <h3>Past Quizzes</h3>
+                            <p>View your quiz history</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="stats-section">
+                    <h2>Your Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card glass-effect">
+                            <div class="stat-value">{{.QuizzesTaken}}</div>
+                            <div class="stat-label">Quizzes Taken</div>
+                        </div>
+                        <div class="stat-card glass-effect">
+                            <div class="stat-value">{{printf "%.1f" .AverageScore}}%</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                        <div class="stat-card glass-effect">
+                            <div class="stat-value">#{{.GlobalRank}}</div>
+                            <div class="stat-label">Global Rank</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-performers glass-effect">
+                <h2>Top Performers</h2>
+                {{if .TopScores}}
+                <div class="leaderboard-table">
+                    {{range .TopScores}}
+                    <div class="leaderboard-row">
+                        <span class="rank">#{{.Rank}}</span>
+                        <span class="username">{{.Username}}</span>
+                        <span class="score">{{printf "%.1f" .Score}}%</span>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <p class="no-scores">No scores recorded yet. Be the first to take a quiz!</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 

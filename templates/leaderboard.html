@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Quiz App</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <h1>Quiz App</h1>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/leaderboard" class="active">Leaderboard</a>
+                <form action="/logout" method="POST" class="logout-form">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="leaderboard-content">
+            <h2>Top Performers</h2>
+            <div class="leaderboard-table">
+                <div class="leaderboard-header">
+                    <span>Rank</span>
+                    <span>Quiz</span>
+                    <span>User</span>
+                    <span>Score</span>
+                </div>
+                {{range .Results}}
+                <div class="leaderboard-row">
+                    <span class="rank">{{.Rank}}</span>
+                    <span class="quiz-name">{{.QuizName}}</span>
+                    <span class="username">{{.Username}}</span>
+                    <span class="score">{{printf "%.1f" .Score}}%</span>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

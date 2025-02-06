@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Quizzes - Quiz App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="container">
+        <nav class="navbar glass-effect">
+            <h1>Quiz App</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/leaderboard" class="nav-link">Leaderboard</a>
+                <form action="/logout" method="POST" class="logout-form">
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </nav>
+
+        <div class="past-quizzes-content glass-effect">
+            <div class="header-actions">
+                <h2>Past Quizzes</h2>
+                <a href="/" class="btn-primary">Back to Home</a>
+            </div>
+
+            {{if .PastQuizzes}}
+            <div class="past-quizzes-grid">
+                {{range .PastQuizzes}}
+                <div class="quiz-card glass-effect">
+                    <h3>{{.Title}}</h3>
+                    <div class="quiz-score">
+                        <p>Your Score <span class="score-value">{{printf "%.1f" .UserScore}}%</span></p>
+                        <p>Rank <span class="score-value">#{{.Rank}}</span></p>
+                        <p>Total Attempts <span class="score-value">{{.TotalAttempts}}</span></p>
+                        <p>High Score <span class="score-value">{{printf "%.1f" .HighScore}}%</span></p>
+                    </div>
+                    <a href="/quiz/{{.ID}}" class="btn-take-quiz">Retake Quiz</a>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="no-quizzes">
+                <p>You haven't taken any quizzes yet.</p>
+                <a href="/" class="btn-primary">Find a Quiz</a>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html> 
